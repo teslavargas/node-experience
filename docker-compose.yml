@@ -73,6 +73,19 @@ services:
     volumes:
       - data:/bitnami/redis/data
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: always
+    container_name: experience_rabbitmq_1
+#    environment:
+#      - REDIS_PASSWORD=ewsua132435 # Security reasons
+#      - DISABLE_COMMANDS=FLUSHDB,FLUSHALL,CONFIG # Security reasons
+    ports:
+      - 15672:15672
+      - 5672:5672
+    networks:
+     - experiencenet
+
 networks:
   experiencenet:
     driver: "bridge"
