@@ -4,7 +4,7 @@
 
 Hello! **NExp** *(Node Experience)* is a boilerplate for [**Node**](https://nodejs.org/en/) built on [**Express**](https://expressjs.com/), which makes use of a Hexagonal architecture, in addition to all the power of [**TypeScript**](https://www.typescriptlang.org/); that combined allow a perfect cohesion thus achieving a clean and at the same time very powerful implementation.
 
-## Tech
+## Tools
 
 **NExp** uses a number of open source packages to work properly:
 
