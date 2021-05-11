@@ -1,6 +1,8 @@
-# Welcome to Node Experience!
+<p align="center">
+  <a href="https://github.com/DigiChanges/node-experience" target="blank"><img src="./NExp.svg" width="120" alt="NExp logo" /></a>
+</p>
 
-Hi! Node experience it's a boilerplate with many tools together for a simple basic project inspired on Clean Architectures.
+Hello! **NExp** *(Node Experience)* is a boilerplate for [**Node**](https://nodejs.org/en/) built on [**Express**](https://expressjs.com/), which makes use of a Hexagonal architecture, in addition to all the power of [**TypeScript**](https://www.typescriptlang.org/); that combined allow a perfect cohesion thus achieving a clean and at the same time very powerful implementation.
 
 **Tools:**
 * Bcrypt
