@@ -4,6 +4,85 @@
 
 Hello! **NExp** *(Node Experience)* is a boilerplate for [**Node**](https://nodejs.org/en/) built on [**Express**](https://expressjs.com/), which makes use of a Hexagonal architecture, in addition to all the power of [**TypeScript**](https://www.typescriptlang.org/); that combined allow a perfect cohesion thus achieving a clean and at the same time very powerful implementation.
 
+**Folder structure of a module**
+
+```sh 
+├── Domain
+│   ├── Entities
+│   ├── Exceptions
+│   └── UseCases
+├── Infrastructure
+│   ├── Repositories
+│   ├── Schema
+│   └── Seeds
+├── InterfaceAdapters
+│   └── Payloads
+├── Presentation
+│   ├── Commands
+│   ├── Criterias
+│   ├── Exceptions
+│   ├── Handlers
+│   ├── Middlewares
+│   ├── Requests
+│   └── Transformers
+├── Services
+├── Shared
+└── Tests
+ ```
+
+```mermaid
+sequenceDiagram
+participant C as Client 
+participant S as Server
+
+C--)S: Request
+activate S
+
+S--)C: Response
+deactivate S
+```
+
+```mermaid
+sequenceDiagram
+participant C as Client 
+participant P as Presentation 
+participant D as Domain
+participant I as Infrastructure
+
+C--)P: Request
+activate P
+
+P-)D: Payload
+activate D
+
+D-)I: IDomain
+activate I
+
+I-)D: IDomain
+deactivate I
+
+D-)P: IDomain
+deactivate D
+
+P--)C: Response 
+deactivate P
+
+```
+
+## Optimized Transpilation
+
+There is a hot reloading using bash and git files. With this mechanism we can transpile only the files that are necessary to transpile, in addition there are also files to take care of eliminating the transpiled files
+that they are not in the project in case of deleting them, when that happens, as nodemon is used for the refresh, in the
+case of the remove files does not restart and in that specific case it should be restarted manually. Although in the
+normal development process. It would not be necessary since eventually you would be modifying another file and it
+would automatically transpile that file and delete the file that was deleted.
+
+As it is still in the experimentation phase, the process may fail. In the event of failure, you can choose to manually
+compile the file that failed to compile or directly execute ```yarn tsc``` to compile everything again.
+
+## Commands
+**NExp** has a series of commands per console that allow you to perform certain actions, from creating a user and assigning a role, to creating a bucket or synchronizing the permissions to the roles defined directly in the code. [Available commands](./Docs/Commands.md)
+
 ## Tools
 
 **NExp** uses a number of open source packages to work properly:
