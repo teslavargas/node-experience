@@ -10,5 +10,5 @@ jobs:
       - checkout
       - node/with-cache:
           steps:
-            - run: yarn
+            - run: yarn && yarn build
       - run: yarn test
