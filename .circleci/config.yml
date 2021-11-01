@@ -1,9 +1,60 @@
 version: 2.1
-orbs:
-  node: circleci/node@1.1
 jobs:
   build:
+    working_directory: ~/mern-starter
     docker:
-      - image: digichanges/nexp:1.0
+      - image: circleci/node:4.8.2-jessie
     steps:
-      - run: yarn && yarn build && yarn test
+      - checkout
+      - run:
+          name: Install yarn
+          command: 'sudo npm install -g yarn@latest'
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: Install npm wee
+          command: yarn
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - node_modules
+  test:
+    docker:
+      - image: circleci/node:4.8.2-jessie
+    steps:
+      - checkout
+      - run:
+          name: Test
+          command: yarn test
+      - run:
+          name: Generate code coverage
+          command: './node_modules/.bin/nyc report --reporter=text-lcov'
+      - store_artifacts:
+          path: test-results.xml
+          prefix: tests
+      - store_artifacts:
+          path: coverage
+          prefix: coverage
+
+workflows:
+  version: 2.1
+  build_and_test:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
+#          filters:
+#            branches:
+#              only: master
+
+
+#version: 2.1
+#orbs:
+#  node: circleci/node@1.1
+#jobs:
+#  build:
+#    docker:
+#      - image: digichanges/nexp:1.0
+#    steps:
+#      - run: yarn && yarn build && yarn test
