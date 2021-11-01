@@ -23,6 +23,8 @@ jobs:
       - image: digichanges/nexp:1.0
     steps:
       - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
       - run:
           name: Test
           command: yarn test
