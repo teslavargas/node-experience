@@ -1,9 +1,9 @@
 version: 2.1
 jobs:
   build:
-    working_directory: ~/mern-starter
+    working_directory: /usr/app
     docker:
-      - image: circleci/node:4.8.2-jessie
+      - image: digichanges/nexp:1.0
     steps:
       - checkout
       - run:
