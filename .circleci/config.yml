@@ -6,8 +6,4 @@ jobs:
     docker:
       - image: digichanges/nexp:1.0
     steps:
-      - checkout
-      - node/with-cache:
-          steps:
-            - run: yarn && yarn build
-      - run: yarn test
+      - run: yarn && yarn build && yarn test
