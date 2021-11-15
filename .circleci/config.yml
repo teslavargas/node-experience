@@ -6,6 +6,7 @@ jobs:
     steps:
       - checkout
       - run: echo "Running tests"
+      - run: ls
       - run: npm install --force
       - run: npm test
 
