@@ -1,68 +1,77 @@
-import 'reflect-metadata';
+import dotenv from 'dotenv';
+dotenv.config({ path: './.env.test' });
+
+import container from './Shared/DI/container';
 
 import supertest from 'supertest';
 
-import { ICreateConnection, ITokenRepository } from '@digichanges/shared-experience';
-
-import DatabaseFactory from './Shared/Factories/DatabaseFactory';
-import EventHandler from './Shared/Events/EventHandler';
-import { REPOSITORIES } from './Config/Injects/repositories';
-import TokenMongoRepository from './Auth/Infrastructure/Repositories/TokenMongoRepository';
-import TokenSqlRepository from './Auth/Infrastructure/Repositories/TokenSqlRepository';
-import { validateEnv } from './Config/validateEnv';
-import container from './inversify.config';
-import ITokenDomain from './Auth/Domain/Entities/ITokenDomain';
+import { MainConfig } from './Config/MainConfig';
+import DatabaseFactory from './Main/Infrastructure/Factories/DatabaseFactory';
 import SeedFactory from './Shared/Factories/SeedFactory';
-import AppFactory from './App/Presentation/Factories/AppFactory';
-import Locales from './App/Presentation/Shared/Locales';
-import { FACTORIES } from './Config/Injects/factories';
-import INotificationFactory from './Notification/Shared/INotificationFactory';
-import MockNotificationFactory from './Notification/Tests/MockNotificationFactory';
-import MainConfig from './Config/mainConfig';
+import AppBootstrapFactory from './Main/Presentation/Factories/AppBootstrapFactory';
+import ICreateConnection from './Main/Infrastructure/Database/ICreateConnection';
+import IAuthRepository from './Auth/Domain/Repositories/IAuthRepository';
+import { FACTORIES, REPOSITORIES } from './Shared/DI/Injects';
+import { instanceCachingFactory, Lifecycle } from 'tsyringe';
+import SendMessageEvent from './Notification/Domain/Events/SendMessageEvent';
+import AuthMockRepository from './Auth/Tests/AuthMockRepository';
+import DependencyInjector from './Shared/DI/DependencyInjector';
+import { IApp } from './Main/Presentation/Application/IApp';
+import { IEventHandler } from './Notification/Domain/Models/EventHandler';
+import { IFilesystem } from './Main/Domain/Shared/IFilesystem';
+import { FilesystemMockStrategy } from './Main/Infrastructure/Filesystem';
 
-const initTestServer = async(): Promise<any> =>
+type TestServerData = {
+    request: supertest.SuperAgentTest,
+    dbConnection: ICreateConnection
+}
+
+const initTestServer = async(): Promise<TestServerData> =>
 {
-    validateEnv();
+    const config = MainConfig.getEnv();
 
-    const databaseFactory: DatabaseFactory = new DatabaseFactory();
+    const databaseFactory = DependencyInjector.inject<DatabaseFactory>(FACTORIES.IDatabaseFactory);
     const dbConnection: ICreateConnection = databaseFactory.create();
 
-    dbConnection.initConfigTest(process.env.MONGO_URL);
+    await dbConnection.initConfigTest();
     await dbConnection.create();
+    await dbConnection.synchronize();
 
-    const eventHandler = EventHandler.getInstance();
-    await eventHandler.setListeners();
+    const eventHandler = DependencyInjector.inject<IEventHandler>('IEventHandler');
+    eventHandler.setEvent(new SendMessageEvent());
 
-    void Locales.getInstance();
+    // @ts-ignore
+    container._registry._registryMap.delete('IAuthRepository');
+    container.register<IAuthRepository>(REPOSITORIES.IAuthRepository, { useClass: AuthMockRepository }, { lifecycle: Lifecycle.Singleton });
 
-    const mainConfig = MainConfig.getInstance().getConfig();
+    // @ts-ignore
+    container._registry._registryMap.delete('IFilesystem');
+    container.register<IFilesystem>('IFilesystem', {
+    // @ts-ignore
+        useFactory: instanceCachingFactory(() =>
+        {
+            return new FilesystemMockStrategy();
+        })
+    }, { lifecycle: Lifecycle.Transient });
 
-    container.unbind(REPOSITORIES.ITokenRepository);
-    container.bind<ITokenRepository<ITokenDomain>>(REPOSITORIES.ITokenRepository).to(mainConfig.dbConfig.default === 'Mongoose'
-        ? TokenMongoRepository
-        : TokenSqlRepository
-    );
+    const appBootstrap = AppBootstrapFactory.create(config.APP_DEFAULT);
 
-    container.unbind(FACTORIES.INotificationFactory);
-    container.bind<INotificationFactory>(FACTORIES.INotificationFactory).to(MockNotificationFactory);
-
-    const app = AppFactory.create('AppKoa', {
-        viewRouteEngine: `${process.cwd()}/dist/src/App/Presentation/Views`,
-        localesDirectory: `${process.cwd()}/dist/src/Config/Locales`,
-        serverPort: 8088
+    const app: IApp = await appBootstrap({
+        serverPort: config.APP_PORT,
+        proxy: config.APP_SET_APP_PROXY,
+        env: config.NODE_ENV,
+        cors: config.APP_CORS
     });
 
-    app.initConfig();
-    app.build();
-
-    const application = app.callback();
+    const application = await app.callback();
     const request: supertest.SuperAgentTest = supertest.agent(application);
 
     const seed = new SeedFactory();
     await seed.init();
 
+    await request.set({ Origin: config.URL_WEB, Accept: 'application/json' });
+
     return { request, dbConnection };
 };
 
 export default initTestServer;
-

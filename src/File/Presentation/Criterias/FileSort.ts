@@ -1,17 +1,17 @@
-import { Sort } from '@digichanges/shared-experience';
+import { Sort } from '../../../Main/Domain/Criteria';
 
 class FileSort extends Sort
 {
     static readonly NAME: string = 'name';
 
-    getFields(): any
+    getFields(): string[]
     {
         return [
             FileSort.NAME
         ];
     }
 
-    getDefaultSorts(): any
+    getDefaultSorts(): Record<string, 'asc' | 'desc'>[]
     {
         return [
             { [FileSort.NAME]: 'asc' }

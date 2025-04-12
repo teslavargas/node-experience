@@ -1,11 +1,11 @@
-import { Filter } from '@digichanges/shared-experience';
+import { Filter } from '../../../Main/Domain/Criteria';
 
 class ItemFilter extends Filter
 {
     static readonly NAME: string = 'name';
     static readonly TYPE: string = 'type';
 
-    getFields(): any
+    getFields(): string[]
     {
         return [
             ItemFilter.NAME,
@@ -13,7 +13,7 @@ class ItemFilter extends Filter
         ];
     }
 
-    getDefaultFilters(): any
+    getDefaultFilters(): Record<string, number | boolean | string>[]
     {
         return [];
     }

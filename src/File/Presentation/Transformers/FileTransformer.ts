@@ -1,25 +1,25 @@
-import moment from 'moment';
-import { Transformer } from '@digichanges/shared-experience';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 
-import IFileDomain from '../../Domain/Entities/IFileDomain';
+import IFileDTO from '../../Domain/Models/IFileDTO';
 import IFileTransformer from './IFileTransformer';
+import { Transformer } from '../../../Main/Presentation/Transformers';
 
 class FileTransformer extends Transformer
 {
-    public async transform(file: IFileDomain): Promise<IFileTransformer>
+    constructor()
     {
+        super();
+    }
+    public async transform(fileDto: IFileDTO): Promise<IFileTransformer>
+    {
+        dayjs.extend(utc);
+
         return {
-            id: file.getId(),
-            name: file.name,
-            originalName: file.originalName,
-            extension: file.extension,
-            path: file.path,
-            mimeType: file.mimeType,
-            size: file.size,
-            version: file.version,
-            isPublic: file.isPublic,
-            createdAt: moment(file.createdAt).utc().unix(),
-            updatedAt: moment(file.updatedAt).utc().unix()
+            id: fileDto.file.getId(),
+            currentVersion: fileDto.file.currentVersion,
+            createdAt: dayjs(fileDto.file.createdAt).utc().unix(),
+            updatedAt: dayjs(fileDto.file.updatedAt).utc().unix()
         };
     }
 }

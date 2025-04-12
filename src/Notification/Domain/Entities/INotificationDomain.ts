@@ -1,4 +1,4 @@
-import IBaseDomain from '../../../App/InterfaceAdapters/IBaseDomain';
+import { IBaseDomain } from '../../../Main/Domain/Entities';
 
 interface INotificationDomain extends IBaseDomain
 {

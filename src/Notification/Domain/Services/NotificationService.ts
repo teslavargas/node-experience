@@ -1,19 +1,21 @@
 import NotificationRepPayload from '../Payloads/NotificationRepPayload';
 import PushNotification from '../Entities/PushNotification';
-import EventHandler from '../../../Shared/Events/EventHandler';
-import SendMessageEvent from '../../../Shared/Events/SendMessageEvent';
+import SendMessageEvent from '../Events/SendMessageEvent';
 import NotificationSendMessagePayload from '../Payloads/NotificationSendMessagePayload';
-import INotificationResponse from '../../InterfaceAdapters/INotificationResponse';
+import INotificationResponse from '../Entities/INotificationResponse';
+import DependencyInjector from '../../../Shared/DI/DependencyInjector';
+import { IEventHandler } from '../Models/EventHandler';
 
 class NotificationService
 {
-    private eventHandler = EventHandler.getInstance();
+    #eventHandler: IEventHandler;
 
     async execute(pushNotification: PushNotification, payload: NotificationRepPayload, message: string, name: string): Promise<INotificationResponse>
     {
+        this.#eventHandler = DependencyInjector.inject<IEventHandler>('IEventHandler');
         pushNotification.subscription = payload.getSubscription();
         pushNotification.name = name;
-        await this.eventHandler.execute(SendMessageEvent.SEND_MESSAGE_EVENT, { push_notification: pushNotification, message });
+        this.#eventHandler.execute(SendMessageEvent.name, { push_notification: pushNotification, message });
 
         return { message: 'We\'ve sent you a notification' };
     }

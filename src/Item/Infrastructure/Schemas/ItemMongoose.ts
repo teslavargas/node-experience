@@ -1,13 +1,14 @@
-import { Schema } from 'mongoose';
+import * as mongoose from 'mongoose';
 import Item from '../../Domain/Entities/Item';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
+import IItemDomain from '../../Domain/Entities/IItemDomain';
 
-const ItemSchema: any = new Schema<Item>({
-    _id: { type: String, default: uuidv4 },
+export type ItemMongooseDocument = Document & IItemDomain;
+
+const ItemSchema: any = new mongoose.Schema<IItemDomain>({
+    _id: { type: String, default: randomUUID },
     name: { type: String, required: true },
-    type: { type: Number, required: true },
-    createdBy: { type: Schema.Types.String, ref: 'User' },
-    lastModifiedBy: { type: Schema.Types.String, ref: 'User' }
+    type: { type: Number, required: true }
 }, { timestamps: true });
 
 ItemSchema.loadClass(Item);

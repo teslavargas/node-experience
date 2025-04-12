@@ -1,16 +1,18 @@
-import { StatusCode } from '@digichanges/shared-experience';
-import ErrorHttpException from '../../../App/Presentation/Shared/ErrorHttpException';
-import Locales from '../../../App/Presentation/Shared/Locales';
+import { ErrorHttpException } from '../../../Main/Presentation/Exceptions/ErrorHttpException';
+import { StatusCode } from '../../../Main/Presentation/Application/StatusCode';
 
 class TokenNotFoundHttpException extends ErrorHttpException
 {
     constructor()
     {
-        const locales = Locales.getInstance().getLocales();
         const key = 'auth.presentation.exceptions.tokenNotFound';
-        super(StatusCode.HTTP_FORBIDDEN, {
-            message: locales.__(key),
-            errorCode: key
+        super({
+            statusCode: StatusCode.HTTP_FORBIDDEN,
+            errorMessage:
+            {
+                message: 'Token not found.',
+                errorCode: key
+            }
         });
     }
 }

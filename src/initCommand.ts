@@ -1,14 +1,14 @@
-import DatabaseFactory from './Shared/Factories/DatabaseFactory';
-import { validateEnv } from './Config/validateEnv';
+import DatabaseFactory from './Main/Infrastructure/Factories/DatabaseFactory';
+import { MainConfig } from './Config/MainConfig';
 
 const initCommand = async() =>
 {
-    validateEnv();
+    MainConfig.getEnv();
 
     const databaseFactory = new DatabaseFactory();
 
     const createConnection = databaseFactory.create();
-    createConnection.initConfig();
+    await createConnection.initConfig();
 
     await createConnection.create();
 };

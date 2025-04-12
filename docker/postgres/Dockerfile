@@ -1,4 +1,4 @@
-FROM postgres:11
+FROM postgres:16
 
-ONBUILD RUN psql -U experience -d experience -c "create extension unaccent;"
-ONBUILD RUN psql -U experience -d experience -c "create extension uuid-ossp;"
+# Copy in the load-extensions script
+COPY load-extensions.sh /docker-entrypoint-initdb.d/

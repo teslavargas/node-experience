@@ -1,20 +1,29 @@
 import ItemRepPayload from '../Payloads/ItemRepPayload';
 import IItemDomain from '../Entities/IItemDomain';
-import IUserDomain from '../../../User/Domain/Entities/IUserDomain';
-import Item from '../Entities/Item';
-import { containerFactory } from '../../../Shared/Decorators/ContainerFactory';
-import { REPOSITORIES } from '../../../Config/Injects/repositories';
-import IItemRepository from '../../Infrastructure/Repositories/IItemRepository';
+import { REPOSITORIES } from '../../../Shared/DI/Injects';
+import IItemRepository from '../Repositories/IItemRepository';
+import DependencyInjector from '../../../Shared/DI/DependencyInjector';
+import ItemBuilder from '../Factories/ItemBuilder';
+import ValidatorSchema from '../../../Main/Domain/Shared/ValidatorSchema';
+import ItemSchemaSaveValidation from '../Validations/ItemSchemaSaveValidation';
 
 class SaveItemUseCase
 {
-    @containerFactory(REPOSITORIES.IItemRepository)
     private repository: IItemRepository;
 
-    async handle(payload: ItemRepPayload, authUser: IUserDomain): Promise<IItemDomain>
+    constructor()
     {
-        const item = new Item(payload);
-        item.createdBy = authUser;
+        this.repository = DependencyInjector.inject<IItemRepository>(REPOSITORIES.IItemRepository);
+    }
+
+    async handle(payload: ItemRepPayload): Promise<IItemDomain>
+    {
+        await ValidatorSchema.handle(ItemSchemaSaveValidation, payload);
+
+        const item: IItemDomain = new ItemBuilder(payload)
+            .setItem()
+            .build()
+            .create();
 
         return await this.repository.save(item);
     }

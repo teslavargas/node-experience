@@ -1,14 +1,12 @@
-import { ErrorException } from '@digichanges/shared-experience';
-import Locales from '../../../App/Presentation/Shared/Locales';
+import { ErrorException } from '../../../Main/Domain/Errors/ErrorException';
 
 class CantDisabledException extends ErrorException
 {
     constructor()
     {
-        const locales = Locales.getInstance().getLocales();
         const key = 'auth.domain.exceptions.cantDisabled';
         super({
-            message: locales.__(key),
+            message: 'Disabled forbidden.',
             errorCode: key
         }, CantDisabledException.name);
     }

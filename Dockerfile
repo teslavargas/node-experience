@@ -1,52 +1,45 @@
-FROM node:16 as node
+FROM digichanges/nexp:1.4 AS dev
 
-# Builder stage
-FROM node AS dev
+WORKDIR /home/node
 
 USER node
 
-RUN mkdir /home/node/cache
-WORKDIR /home/node/cache
+COPY --chown=node:node ["package.json", "pnpm-lock.yaml", ".husky", ".huskyrc", "/home/node/"]
 
-COPY --chown=node:node package.json yarn.lock ./
+RUN pnpm install
 
-RUN yarn
+COPY --chown=node:node [".", "/home/node/"]
 
-WORKDIR /home/node/app
+EXPOSE 8089
 
-COPY . .
+ENTRYPOINT ["dumb-init", "pnpm","dev"]
 
-EXPOSE ${PORT}
+FROM dev AS build
 
-# Run development server
-ENTRYPOINT [ "bash", "entrypoint.sh" ]
+RUN pnpm build
 
-# Final stage
-FROM node AS prod
+RUN rm -rf node_modules
+
+FROM build AS prerelease
+
+USER node
+
+RUN pnpm install --production --ignore-scripts \
+    && cd node_modules/bcrypt  \
+    && npm rebuild bcrypt --build-from-source
+
+FROM digichanges/nexp:1.4 AS prod
 
 ENV NODE_ENV production
 
-# Update the system
-RUN apk --no-cache -U upgrade
+WORKDIR /home/node
 
-# Prepare destination directory and ensure user node owns it
-RUN mkdir -p /home/node/app/dist && chown -R node:node /home/node/app
-
-# Set CWD
-WORKDIR /home/node/app
-
-RUN npm install -g pm2
-
-COPY --chown=node:node package.json yarn.lock ecosystem.config.js ./
-
-# Switch to user node
 USER node
 
-RUN yarn install --production
-
 # Copy js files and change ownership to user node
-COPY --chown=node:node --from=builder /home/node/app/dist ./dist
-COPY --chown=node:node --from=builder /home/node/app/config ./config
+COPY --from=prerelease /home/node/node_modules/ ./node_modules/
+COPY --from=prerelease /home/node/dist/ ./dist/
+COPY --from=prerelease /home/node/package.json/ ./package.json
+COPY --from=prerelease /home/node/pnpm-lock.yaml/  ./pnpm-lock.yaml
 
-# Use PM2 to run the application as stated in config file
-ENTRYPOINT ["pm2-runtime", "start", "ecosystem.config.js"]
+ENTRYPOINT ["dumb-init", "pnpm", "start"]

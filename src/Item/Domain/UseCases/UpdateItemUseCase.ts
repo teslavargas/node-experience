@@ -1,20 +1,31 @@
 import ItemUpdatePayload from '../Payloads/ItemUpdatePayload';
 import IItemDomain from '../Entities/IItemDomain';
-import IUserDomain from '../../../User/Domain/Entities/IUserDomain';
-import { containerFactory } from '../../../Shared/Decorators/ContainerFactory';
-import { REPOSITORIES } from '../../../Config/Injects/repositories';
-import IItemRepository from '../../Infrastructure/Repositories/IItemRepository';
+import { REPOSITORIES } from '../../../Shared/DI/Injects';
+import IItemRepository from '../Repositories/IItemRepository';
+import DependencyInjector from '../../../Shared/DI/DependencyInjector';
+import ItemBuilder from '../Factories/ItemBuilder';
+import ValidatorSchema from '../../../Main/Domain/Shared/ValidatorSchema';
+import ItemSchemaUpdateValidation from '../Validations/ItemSchemaUpdateValidation';
 
 class UpdateItemUseCase
 {
-    @containerFactory(REPOSITORIES.IItemRepository)
     private repository: IItemRepository;
 
-    async handle(payload: ItemUpdatePayload, authUser: IUserDomain): Promise<IItemDomain>
+    constructor()
     {
-        const item: IItemDomain = await this.repository.getOne(payload.id);
-        item.updateBuild(payload);
-        item.lastModifiedBy = authUser;
+        this.repository = DependencyInjector.inject<IItemRepository>(REPOSITORIES.IItemRepository);
+    }
+
+    async handle(payload: ItemUpdatePayload): Promise<IItemDomain>
+    {
+        await ValidatorSchema.handle(ItemSchemaUpdateValidation, payload);
+
+        let item: IItemDomain = await this.repository.getOne(payload.id);
+
+        item = new ItemBuilder(payload)
+            .setItem(item)
+            .build()
+            .update();
 
         return await this.repository.update(item);
     }

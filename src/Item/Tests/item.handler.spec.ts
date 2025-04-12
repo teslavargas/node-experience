@@ -1,15 +1,13 @@
 import { SuperAgentTest } from 'supertest';
 import initTestServer from '../../initTestServer';
-import { ICreateConnection } from '@digichanges/shared-experience';
-import { ILoginResponse } from '../../Shared/InterfaceAdapters/Tests/ILogin';
 import { IItemResponse, IListItemsResponse } from './types';
-import MainConfig from '../../Config/mainConfig';
+import { MainConfig } from '../../Config/MainConfig';
+import ICreateConnection from '../../Main/Infrastructure/Database/ICreateConnection';
 
 describe('Start Item Test', () =>
 {
     let request: SuperAgentTest;
     let dbConnection: ICreateConnection;
-    let token: string = null;
     let itemId = '';
     let deleteResponse: any = null;
 
@@ -23,29 +21,15 @@ describe('Start Item Test', () =>
 
     afterAll((async() =>
     {
-        await dbConnection.drop();
-        await dbConnection.close();
+        if (dbConnection)
+        {
+            await dbConnection.drop();
+            await dbConnection.close();
+        }
     }));
 
     describe('Item Success', () =>
     {
-        beforeAll(async() =>
-        {
-            const payload = {
-                email: 'user@node.com',
-                password: '12345678'
-            };
-
-            const response: ILoginResponse = await request
-                .post('/api/auth/login?provider=local')
-                .set('Accept', 'application/json')
-                .send(payload);
-
-            const { body: { data } } = response;
-
-            token = data.token;
-        });
-
         test('Add Item /items', async() =>
         {
             const payload = {
@@ -56,11 +40,9 @@ describe('Start Item Test', () =>
             const response: IItemResponse = await request
                 .post('/api/items')
                 .set('Accept', 'application/json')
-                .set('Authorization', `Bearer ${token}`)
                 .send(payload);
 
             const { body: { data } } = response;
-
             expect(response.statusCode).toStrictEqual(201);
 
             itemId = data.id;
@@ -75,8 +57,6 @@ describe('Start Item Test', () =>
 
             const response: IItemResponse = await request
                 .get(`/api/items/${itemId}`)
-                .set('Accept', 'application/json')
-                .set('Authorization', `Bearer ${token}`)
                 .send();
 
             const { body: { data } } = response;
@@ -96,13 +76,9 @@ describe('Start Item Test', () =>
 
             const response: IItemResponse = await request
                 .put(`/api/items/${itemId}`)
-                .set('Accept', 'application/json')
-                .set('Authorization', `Bearer ${token}`)
                 .send(payload);
 
-            const { body: { data } } = response;
-
-            expect(response.statusCode).toStrictEqual(201);
+            expect(response.statusCode).toStrictEqual(200);
         });
 
         test('Delete Item /items/:id', async() =>
@@ -114,14 +90,10 @@ describe('Start Item Test', () =>
 
             const createResponse: IItemResponse = await request
                 .post('/api/items')
-                .set('Accept', 'application/json')
-                .set('Authorization', `Bearer ${token}`)
                 .send(payload);
 
             deleteResponse = await request
                 .delete(`/api/items/${createResponse.body.data.id}`)
-                .set('Accept', 'application/json')
-                .set('Authorization', `Bearer ${token}`)
                 .send();
 
             const { body: { data } } = deleteResponse;
@@ -132,14 +104,12 @@ describe('Start Item Test', () =>
             expect(data.type).toStrictEqual(payload.type);
         });
 
-        test('Get Items /items', async() =>
+        test('Get Items /items with pagination', async() =>
         {
-            const config = MainConfig.getInstance();
+            const config = MainConfig.getEnv();
 
             const response: IListItemsResponse = await request
                 .get('/api/items?pagination[offset]=0&pagination[limit]=5')
-                .set('Accept', 'application/json')
-                .set('Authorization', `Bearer ${token}`)
                 .send();
 
             const { body: { data, pagination } } = response;
@@ -153,7 +123,7 @@ describe('Start Item Test', () =>
             expect(pagination.lastPage).toStrictEqual(3);
             expect(pagination.from).toStrictEqual(0);
             expect(pagination.to).toStrictEqual(5);
-            expect(pagination.path).toContain(config.getConfig().url.urlApi);
+            expect(pagination.path).toContain(config.URL_API);
             expect(pagination.firstUrl).toContain('/api/items?pagination[offset]=0&pagination[limit]=5');
             expect(pagination.lastUrl).toContain('/api/items?pagination[offset]=10&pagination[limit]=5');
             expect(pagination.nextUrl).toContain('/api/items?pagination[offset]=5&pagination[limit]=5');
@@ -165,8 +135,6 @@ describe('Start Item Test', () =>
         {
             const response: IListItemsResponse = await request
                 .get('/api/items')
-                .set('Accept', 'application/json')
-                .set('Authorization', `Bearer ${token}`)
                 .send();
 
             const { body: { data, pagination } } = response;
@@ -181,8 +149,6 @@ describe('Start Item Test', () =>
         {
             const response: IListItemsResponse = await request
                 .get('/api/items?pagination[limit]=20&pagination[offset]=0&filter[type]=11')
-                .set('Accept', 'application/json')
-                .set('Authorization', `Bearer ${token}`)
                 .send();
 
             const { body: { data, pagination } } = response;
@@ -199,8 +165,6 @@ describe('Start Item Test', () =>
         {
             const response: IListItemsResponse = await request
                 .get('/api/items?pagination[limit]=20&pagination[offset]=0&sort[type]=desc')
-                .set('Accept', 'application/json')
-                .set('Authorization', `Bearer ${token}`)
                 .send();
 
             const { body: { data: [item1, item2] } } = response;
@@ -213,23 +177,6 @@ describe('Start Item Test', () =>
 
     describe('Item Fails', () =>
     {
-        beforeAll(async() =>
-        {
-            const payload = {
-                email: 'user@node.com',
-                password: '12345678'
-            };
-
-            const response: ILoginResponse = await request
-                .post('/api/auth/login?provider=local')
-                .set('Accept', 'application/json')
-                .send(payload);
-
-            const { body: { data } } = response;
-
-            token = data.token;
-        });
-
         test('Add Item /items', async() =>
         {
             const payload = {
@@ -239,35 +186,30 @@ describe('Start Item Test', () =>
 
             const response: IItemResponse = await request
                 .post('/api/items')
-                .set('Accept', 'application/json')
-                .set('Authorization', `Bearer ${token}`)
                 .send(payload);
 
             const { body: { message, errors: [error] } } = response;
 
             expect(response.statusCode).toStrictEqual(422);
-            expect(message).toStrictEqual('Failed Request.');
+            expect(message).toStrictEqual('Request Failed.');
 
-            expect(error.property).toStrictEqual('type');
-            expect(error.constraints.isInt).toStrictEqual('type must be an integer number');
+            expect(error.code).toStrictEqual('invalid_type');
+            expect(error.message).toStrictEqual('Expected number, received string');
         });
 
         test('Get Item /items/:id', async() =>
         {
             const response: IItemResponse = await request
                 .get(`/api/items/${itemId}dasdasda123`)
-                .set('Accept', 'application/json')
-                .set('Authorization', `Bearer ${token}`)
                 .send();
 
             const { body: { message, errors: [error] } } = response;
 
             expect(response.statusCode).toStrictEqual(422);
-            expect(message).toStrictEqual('Failed Request.');
+            expect(message).toStrictEqual('Request Failed.');
 
-            expect(error.property).toStrictEqual('id');
-            expect(error.constraints.isUuid).toBeDefined();
-            expect(error.constraints.isUuid).toStrictEqual('id must be a UUID');
+            expect(error.code).toStrictEqual('invalid_string');
+            expect(error.message).toStrictEqual('Invalid uuid');
         });
 
         test('Update Item /items/:id', async() =>
@@ -279,30 +221,24 @@ describe('Start Item Test', () =>
 
             const response: IItemResponse = await request
                 .put(`/api/items/${itemId}`)
-                .set('Accept', 'application/json')
-                .set('Authorization', `Bearer ${token}`)
                 .send(payload);
 
             const { body: { message, errors: [errorName, errorType] } } = response;
 
             expect(response.statusCode).toStrictEqual(422);
-            expect(message).toStrictEqual('Failed Request.');
+            expect(message).toStrictEqual('Request Failed.');
 
-            expect(errorName.property).toStrictEqual('name');
-            expect(errorName.constraints.isString).toBeDefined();
-            expect(errorName.constraints.isString).toStrictEqual('name must be a string');
+            expect(errorName.code).toStrictEqual('invalid_type');
+            expect(errorName.message).toStrictEqual('Expected string, received number');
 
-            expect(errorType.property).toStrictEqual('type');
-            expect(errorType.constraints.isInt).toBeDefined();
-            expect(errorType.constraints.isInt).toStrictEqual('type must be an integer number');
+            expect(errorType.code).toStrictEqual('invalid_type');
+            expect(errorType.message).toStrictEqual('Expected number, received string');
         });
 
         test('Delete Item error /items/:id', async() =>
         {
             const deleteErrorResponse: IItemResponse = await request
                 .delete(`/api/items/${deleteResponse.body.data.id}`)
-                .set('Accept', 'application/json')
-                .set('Authorization', `Bearer ${token}`)
                 .send();
 
             const { body: { message } } = deleteErrorResponse;

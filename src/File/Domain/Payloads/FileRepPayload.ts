@@ -1,5 +1,6 @@
+import { FileVersionPayload } from './FileVersionPayload';
 
-interface FileRepPayload
+interface FileRepPayload extends FileVersionPayload
 {
     originalName: string;
     mimeType: string;
@@ -7,6 +8,7 @@ interface FileRepPayload
     extension: string;
     size: number;
     isPublic: boolean;
+    isImage: boolean;
 }
 
 export default FileRepPayload;

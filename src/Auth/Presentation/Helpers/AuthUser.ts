@@ -1,8 +1,11 @@
 import TypeAuth from '../../Domain/Types/TypeAuth';
 import Auth from '../../Domain/Types/Auth';
-import { ParameterizedContext } from 'koa';
+import dayjs from 'dayjs';
 
-export const AuthUser  = <T extends Auth = Auth >(request: Request | ParameterizedContext |any, type: TypeAuth = 'authUser'): T =>
+export const AuthUser  = <T extends Auth = Auth >(request: unknown, type: TypeAuth = 'authUser'): T =>
 {
-    return request[type];
+    const user = request[type];
+    user.birthdate = dayjs(user.birthdate, 'yyyy-mm-dd').toDate();
+
+    return user;
 };

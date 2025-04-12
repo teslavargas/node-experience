@@ -1,6 +1,6 @@
-import IUserDomain from '../../../User/Domain/Entities/IUserDomain';
-import ITokenDecode from '../../../Shared/InterfaceAdapters/ITokenDecode';
+import IUserDomain from '../Entities/IUserDomain';
+import IDecodeToken from '../Models/IDecodeToken';
 
-declare type Auth = IUserDomain | ITokenDecode;
+declare type Auth = IUserDomain | IDecodeToken;
 
 export default Auth;

@@ -1,14 +1,12 @@
-import { ErrorException } from '@digichanges/shared-experience';
-import Locales from '../../../App/Presentation/Shared/Locales';
+import { ErrorException } from '../../../Main/Domain/Errors/ErrorException';
 
 class PasswordWrongException extends ErrorException
 {
     constructor()
     {
-        const locales = Locales.getInstance().getLocales();
         const key = 'auth.domain.exceptions.passwordWrong';
         super({
-            message: locales.__(key),
+            message: 'Wrong password.',
             errorCode: key
         }, PasswordWrongException.name);
     }

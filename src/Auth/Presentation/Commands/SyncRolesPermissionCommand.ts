@@ -1,16 +1,16 @@
-import Logger from '../../../Shared/Logger/Logger';
+import Logger from '../../../Shared/Helpers/Logger';
 import commander from 'commander';
-import SyncRolesPermissionUseCase from '../../Domain/UseCases/SyncRolesPermissionUseCase';
+import SyncPermissionsUseCase from '../../Domain/UseCases/Auth/SyncPermissionsUseCase';
 
 const SyncRolesPermissionCommand = new commander.Command('syncRolesPermission');
 
 SyncRolesPermissionCommand
-    .version('0.0.1')
+    .version('0.0.2')
     .description('Sync permissions')
-    .action(() =>
+    .action(async() =>
     {
-        const syncRolesPermissionUseCase = new SyncRolesPermissionUseCase();
-        syncRolesPermissionUseCase.handle();
+        const useCase = new SyncPermissionsUseCase();
+        await useCase.handle();
 
         Logger.info('Sync successfully.');
     });

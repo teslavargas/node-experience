@@ -1,14 +1,33 @@
-import { IsString } from 'class-validator';
 import CreateBucketPayload from '../../Domain/Payloads/CreateBucketPayload';
+
+interface CreateBucketCommandProps
+{
+    name: string;
+    region: string;
+}
+
+interface IStatementPolicy
+{
+    Effect: string;
+    Principal: Record<string, string>;
+    Action: string[];
+    Resource: string[];
+}
+
+interface IBucketPolicy
+{
+    Version: string;
+    Statement: IStatementPolicy[];
+}
 
 class CreateBucketCommandRequest implements CreateBucketPayload
 {
     private readonly _name: string;
-    private readonly _publicBucketPolicy: any;
-    private readonly _privateBucketPolicy: any;
+    private readonly _publicBucketPolicy: IBucketPolicy;
+    private readonly _privateBucketPolicy: IBucketPolicy;
     private readonly _region: string;
 
-    constructor(env: any)
+    constructor(env: CreateBucketCommandProps)
     {
         this._name = env.name;
         this._region = env.region;
@@ -21,7 +40,7 @@ class CreateBucketCommandRequest implements CreateBucketPayload
                     Action: [
                         's3:GetBucketLocation'
                     ],
-                    Resource: 'arn:aws:s3:::*'
+                    Resource: ['arn:aws:s3:::*']
                 }
             ]
         };
@@ -44,7 +63,6 @@ class CreateBucketCommandRequest implements CreateBucketPayload
         };
     }
 
-    @IsString()
     get name(): string
     {
         return this._name;
@@ -60,7 +78,6 @@ class CreateBucketCommandRequest implements CreateBucketPayload
         return JSON.stringify(this._privateBucketPolicy);
     }
 
-    @IsString()
     get region(): string
     {
         return this._region;

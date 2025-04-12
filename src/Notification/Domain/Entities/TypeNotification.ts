@@ -1,6 +1,6 @@
 import webPush from 'web-push';
-import { TypeNotificationEnum } from '@digichanges/shared-experience';
-import Base from '../../../App/Domain/Entities/Base';
+import TypeEnum from '../Enum/TypeEnum';
+import { Base } from '../../../Main/Domain/Entities';
 
 class TypeNotification extends Base
 {
@@ -14,7 +14,7 @@ class TypeNotification extends Base
     description: string;
     url: string;
     subscription: webPush.PushSubscription;
-    type: TypeNotificationEnum;
+    type: TypeEnum;
 
     constructor()
     {
@@ -28,17 +28,12 @@ class TypeNotification extends Base
         this.cc = null;
         this.subject = null;
         this.description = null;
-        this.type = TypeNotificationEnum.EMAIL;
+        this.type = TypeEnum.EMAIL;
     }
 
     getSubscription()
     {
         return this.subscription;
-    }
-
-    getUrl()
-    {
-        return this.url;
     }
 }
 

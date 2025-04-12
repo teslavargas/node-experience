@@ -1,16 +1,18 @@
-import { StatusCode } from '@digichanges/shared-experience';
-import ErrorHttpException from '../../../App/Presentation/Shared/ErrorHttpException';
-import Locales from '../../../App/Presentation/Shared/Locales';
+import { ErrorHttpException } from '../../../Main/Presentation/Exceptions/ErrorHttpException';
+import { StatusCode } from '../../../Main/Presentation/Application/StatusCode';
 
 class TokenExpiredHttpException extends ErrorHttpException
 {
     constructor()
     {
-        const locales = Locales.getInstance().getLocales();
         const key = 'auth.presentation.exceptions.tokenExpired';
-        super(StatusCode.HTTP_FORBIDDEN, {
-            message: locales.__(key),
-            errorCode: key
+        super({
+            statusCode: StatusCode.HTTP_FORBIDDEN,
+            errorMessage:
+            {
+                message: 'Invalid userId.',
+                errorCode: key
+            }
         });
     }
 }

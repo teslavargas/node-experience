@@ -1,21 +1,31 @@
 {
+  "reflection": true,
   "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "importHelpers": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": false,
+    "skipDefaultLibCheck": true,
+    "inlineSourceMap": false,
+    "useUnknownInCatchVariables": true,
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
-    "target": "ES2019",
+    "target": "esnext",
     "lib": [
-      "ES2019",
-      "DOM"
+      "esnext",
+      "DOM",
+      "es2015.symbol"
     ],
-    "allowJs": true,
     "outDir": "./dist",
     "baseUrl": "./src",
-    "module": "commonjs",
+    "module": "CommonJS",
     "esModuleInterop": true,
-    "noImplicitAny": true,
+    "strict": false,
     "types": [
       "node",
-      "reflect-metadata",
       "jest"
     ],
     "typeRoots": [
@@ -31,6 +41,6 @@
   "include": [
     "./src",
     "./typings/*",
-    ".eslintrc.js",
+    ".eslintrc"
   ]
 }

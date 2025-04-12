@@ -1,8 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
-import MainConfig from '../../Config/mainConfig';
+import AxiosHandler from '../Infrastructure/AxiosHandler';
 
-const port = MainConfig.getInstance().getConfig().serverPort;
-const baseURL = `http://localhost:${port}/api/`;
+const baseURL = 'http://localhost:8080/api/';
 const timeout = 3000;
 const headersPublic = {
     'Content-Type': 'application/json',
@@ -28,4 +27,10 @@ export class AxiosFactory
 
         return axios.create(config);
     }
+    static getAxiosHandlerInstance(): AxiosHandler
+    {
+        return new AxiosHandler(axios.create());
+    }
 }
+
+export default AxiosFactory;
